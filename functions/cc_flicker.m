@@ -34,8 +34,8 @@ end
 C = cc_genConnectome(N, D);      % Generate connectome
 B = sum( C(:) );
 D = B / (N^2);
-% Time steps
-T = round( 5 * D * (N^4) );
+% Max number of time steps
+T = 10 * cc_averageRuntime(N,D);
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
 

@@ -4,7 +4,7 @@ function [ T ] = cc_averageRuntime( N, D )
 
 load( [getenv('HOME'), '/Dropbox/lab_projects/bbaserde/', ...
     'ConnectomeCloning/results/run_all.mat'], 'regRes' );
-T = regRes(1) * (D^regRes(2)) * (N*regRes(3));
+T = round( regRes(1) * (D^regRes(2)) * (N^regRes(3)) );
 
 end
 

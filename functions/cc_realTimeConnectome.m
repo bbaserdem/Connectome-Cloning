@@ -56,7 +56,7 @@ N = size(C,1);
 B = sum( C(:) );
 D = B / (N^2);
 % Time steps (Results from 17-07-2017
-T = round( 2 * 12.4275 * (D^1.6309) * (N^3.3652) );
+T = 2*cc_averageRuntime(N,D);
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
 

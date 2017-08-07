@@ -54,9 +54,13 @@ H = [0, 0];
 
 
 %% %-----INITIALIZATION-----%
+% Connectome
+C = cc_genConnectome(N, D);      % Generate connectome
+B = sum( C(:) );
+D = B / (N^2);
 
 % For video 
-cEstimate = round( exp(2.5199) * ( D ^ 1.6309 ) * ( N ^ 3.3652 ) );
+cEstimate = cc_averageRuntime(N,D);
 % Aim to record ~10000 recordings
 stepSize = ceil( cEstimate / recordAmount );
 % Account for overhead
@@ -64,12 +68,8 @@ Xval = (1:stepSize:2*cEstimate)';
 Yval = zeros(size(Xval));
 lEstimate = length(Xval);
 
-% Connectome
-C = cc_genConnectome(N, D);      % Generate connectome
-B = sum( C(:) );
-D = B / (N^2);
 % Time steps
-T = round( 5 * D * (N^4) );
+T = 10 * cEstimate;
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
 

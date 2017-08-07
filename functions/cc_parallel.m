@@ -65,7 +65,7 @@ C = cc_genConnectome(N, D);      % Generate connectome
 B = sum( C(:) );
 D = B / (N^2);
 % Time steps
-T = round( 5 * D * (N^4) );
+T = 10*cc_averageRuntime(N,D);
 
 % Parent connectome barcode-list generation
 [K(:,1), K(:,2), ~] = find( C );
