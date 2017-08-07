@@ -1,0 +1,9 @@
+\frametitle{Remarks}
+\begin{itemize}
+        \item SA is a viable tool to generate connectome locally from a netlist
+            representation. Convergence is guaranteed.
+        \item Convergence time of such an algorithm is polynomial on network
+            size and density.
+        \item Low level connectivity information can be encoded and recovered
+            from DNA sequences in a biologically plausable way.
+    \end{itemize}
