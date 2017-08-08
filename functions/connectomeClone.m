@@ -1,48 +1,10 @@
 function [ O, B ] = connectomeClone( N, D, E, H )
 %CONNCLONE: main function for running simulation
 
-% Free letters remaining: DGINPU
 
-% Inputs
-%   N: ( 100 ) input connectome size
-%   D: ( 0.1 )input connectome density. >=1 switches to scale free k=3
-%       network, which then becomes half the average degree per node
-
-%   E: (  10 ) Cost parameter in hamiltonian
-%   H: ([0,0]) Temperature, scaling from H(1) to H(2)
-%
-% Outputs
-%   O: 0 if reconstruction was unsuccessful, convergence time if
-%       successful.
-%   B: number of barcode pairs in the connectome
-%
-% Intermediate varaibles
-%   W: Used to batch generate random numbers
-%   C: The original connectome
-%   V: Reconstructed connectome
-%   T: Max simulation runtime
-%   R: Move probabilities
-%   K: List of barcodes on barcode-pair(bp) ends (pre,pos) 
-%   S: List that contains bp locations. (pre,pos)
-%   M: Table keeping track of barcodes per cell (barc,cell)
-%   F: Total barcodes per cell (cell)
-%   A: List of bp ids in each cell (cell,...)
-%   J: Total # of barcode pairs per cell (cell)
-%   Q: Location of bp in A (cell,bp-id)
-%   Y: List of cells with >1 bp in them (...)
-%   Z: Total # of cells with >1 bp in them
-%   X: Location of cells in A (cell)
-%   c, c1, c2: used to mark selected cells
-%   b, b1, b2: used to mark selected barcode-pair ids
-%   p, p1, P2: used to mark pre-pos ends of selected bps
-%   m, m1, m2: used to mark barcodes
-
-
-
-
-
-%% %-----PARAMETERS-----%
-W = 500000;
+%-----PARAMETERS-----%
+W = 500000;         % For batch generation
+G = 10;             % Allow this many projected runs
 if ~exist('N', 'var')
     N = 100;
 end
@@ -55,37 +17,28 @@ end
 if ~exist('H', 'var')
     H = [0, 0];
 end
-
 %-----PARAMETERS-----% END
 
 
-
-
-
-
-%% %-----INITIALIZATION-----%
-
+%-----INITIALIZATION-----%
 % Connectome
 C = cc_genConnectome(N, D);      % Generate connectome
 B = sum( C(:) );
 D = B / (N^2);
 % Time steps
-T = 10 * cc_averageRuntime(N,D);
+T = G * cc_averageRuntime(N,D);
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
-
 % Function to evaluate transition probability
 if all( H == 0 )
     tran = @(t,de) 1*(de<0);
 else
     tran = @(t,de) exp( -1 * de / (H(1) + ((t-2)/(T-2))*(H(2)-H(1)) ) );
 end
-
 % Parent connectome barcode-list generation
 [K(:,1), K(:,2), ~] = find( C );
 % (Barcode-pair,synapse) list, initialized randomly
 S = ceil( N * rand(B, 2) );
-
 % Barcode matrix, (barcode,cell) and populate it from S
 M = zeros(N);
 J = zeros(N,1);
@@ -104,10 +57,8 @@ for b = 1:B
         Q( S(b,2),         b ) = J( S(b,2) );
     end
 end
-
 % Number of barcodes per cell
 F = sum(M);
-
 % Store cells with more than one barcode to speed simulation
 Y = zeros(1,N);
 X = zeros(1,N);
@@ -119,27 +70,19 @@ for n = 1:N
         X(n) = Z;
     end
 end
-
 % Energy function
 L = ...
     sum( -(1+E)*sum(M.^2) + E*(sum(M).^2) ) + ...   % Current E contrib.
     sum( sum(C+C').^2 );                % Normalize GS
-
 %-----INITIALIZATION-----% END
 
 
-
-
-
-
-%% %-----SIMULATION-----%
-
+%-----SIMULATION-----%
 for t = 1:T
     k = mod( t-1, W ) + 1;
     if k == 1
         r = rand(5,W);
     end
-    
     %-----ACTION-----% BEGIN
     if r(1,k) < R(1)
         %-----JUMP-----% BEGIN
@@ -152,10 +95,8 @@ for t = 1:T
             continue
         end
         m = K(b,p);             % The barcode that moves is K(b,p)
-        
         % Change in energy
         dE = 2 * ( E*(1+F(c2)-F(c1)) - (1+E)*(1+M(m,c2)-M(m,c1)) );
-        
         % Accept clause
         if r(5,k) < tran(t,dE)
             % If jumping from a self synapse, dont do anything
@@ -211,7 +152,6 @@ for t = 1:T
         if b1 == b2
             continue
         end
-        
         % Get p1 and p2 ends
         if     S(b1, 1) ~= c
             p1 = 1;
@@ -297,8 +237,6 @@ for t = 1:T
         %-----FLIP-----% END
     end
     %-----ACTION-----% END
-    
-    
     %-----TRUNCATE-----% BEGIN
     if L == 0
         T = t;
@@ -306,13 +244,10 @@ for t = 1:T
     end
     %-----TRUNCATE-----% END
 end
-
 %-----SIMULATION-----% END
 
 
-
-%% %-----RECONSTRUCTION-----%
-
+%-----RECONSTRUCTION-----%
 % Assign each cell a number that indicates their barcode ID
 % Identify cells by most prominant barcode
 conid = cc_isOBOC( M );
@@ -328,5 +263,6 @@ else
     end
 end
 %-----RECONSTRUCTION-----% END
+
 
 end

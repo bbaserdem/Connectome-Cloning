@@ -1,4 +1,4 @@
-function [ connectome, I, U ] = cf_flickerSynapses( N, S, U )
+function [ I, U, connectome ] = cf_flickerSynapses( N, S, U )
 % CF_FLICKERSYNAPSES: Generate active synapses list
 
 % Number of active synapses requested
@@ -21,7 +21,7 @@ end
 I = zeros(N);
 U = zeros(N,1);
 for b = 1:N
-    sto = find( connectome(b,:);
+    sto = find( connectome(b,:) );
     U(b) = length(sto);
     I(b, 1:U(b)) = sto;
 end

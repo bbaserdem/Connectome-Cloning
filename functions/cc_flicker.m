@@ -1,13 +1,11 @@
-function [ O, B ] = cc_flicker( N, D, E, H )
+function [ O, B ] = cc_flicker( N, D, fd, E, H )
 %CC_FLICKER: Simulation with flickering synapses
 
 
-
-
-
-%% %-----PARAMETERS-----%
-W = 500000;
-P = 10;
+%-----PARAMETERS-----%
+W = 500000;     % For batch generation
+G = 10;         % Allow this many projected runtimes
+P = 10;         % Flicker amount per projected run
 if ~exist('N', 'var')
     N = 100;
 end
@@ -20,37 +18,33 @@ end
 if ~exist('H', 'var')
     H = [0, 0];
 end
-
+if ~exist('U', 'var')
+    fd = .3;
+end
 %-----PARAMETERS-----% END
 
 
-
-
-
-
-%% %-----INITIALIZATION-----%
-
+%-----INITIALIZATION-----%
 % Connectome
 C = cc_genConnectome(N, D);      % Generate connectome
 B = sum( C(:) );
 D = B / (N^2);
 % Max number of time steps
-T = 10 * cc_averageRuntime(N,D);
+T = G * cc_averageRuntime(N,D);
+% Flicker step size
+flicker_step = round( ( T / G ) / P ); 
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
-
 % Function to evaluate transition probability
 if all( H == 0 )
     tran = @(t,de) 1*(de<0);
 else
     tran = @(t,de) exp( -1 * de / (H(1) + ((t-2)/(T-2))*(H(2)-H(1)) ) );
 end
-
 % Parent connectome barcode-list generation
 [K(:,1), K(:,2), ~] = find( C );
 % (Barcode-pair,synapse) list, initialized randomly
 S = ceil( N * rand(B, 2) );
-
 % Barcode matrix, (barcode,cell) and populate it from S
 M = zeros(N);
 J = zeros(N,1);
@@ -69,10 +63,8 @@ for b = 1:B
         Q( S(b,2),         b ) = J( S(b,2) );
     end
 end
-
 % Number of barcodes per cell
 F = sum(M);
-
 % Store cells with more than one barcode to speed simulation
 Y = zeros(1,N);
 X = zeros(1,N);
@@ -84,43 +76,37 @@ for n = 1:N
         X(n) = Z;
     end
 end
-
 % Energy function
 L = ...
     sum( -(1+E)*sum(M.^2) + E*(sum(M).^2) ) + ...   % Current E contrib.
     sum( sum(C+C').^2 );                            % Normalize GS
-
 %-----INITIALIZATION-----% END
 
 
-
-
-
-
-%% %-----SIMULATION-----%
-
+%-----SIMULATION-----%
 for t = 1:T
     k = mod( t-1, W ) + 1;
     if k == 1
         r = rand(5,W);
     end
-    
+    % Flicker
+    if mod(t-1,flicker_step) == 0
+        [ I , U ] = cf_flickerSynapses(N, S, fd); 
+    end
     %-----ACTION-----% BEGIN
     if r(1,k) < R(1)
         %-----JUMP-----% BEGIN
-        b = ceil( B * r(2,k) );   % Select a barcode
-        p = ceil( 2 * r(3,k) );   % Select an end
-        c  = S(b,3-p);          % Base cell
-        c1 = S(b,p);            % Changing cell is S(b,p)
-        c2 = ceil( N * r(4,k) );	% Changed cell is a random cell not c1
+        b = ceil( B * r(2,k) );         % Select a barcode
+        p = ceil( 2 * r(3,k) );         % Select an end
+        c  = S(b,3-p);                  % Base cell
+        c1 = S(b,p);                    % Changing cell is S(b,p)
+        c2 = I(c,ceil( U(c) * r(4,k) ));% Changed cell is a available syn.
         if c1 == c2
             continue
         end
         m = K(b,p);             % The barcode that moves is K(b,p)
-        
         % Change in energy
         dE = 2 * ( E*(1+F(c2)-F(c1)) - (1+E)*(1+M(m,c2)-M(m,c1)) );
-        
         % Accept clause
         if r(5,k) < tran(t,dE)
             % If jumping from a self synapse, dont do anything
@@ -176,7 +162,6 @@ for t = 1:T
         if b1 == b2
             continue
         end
-        
         % Get p1 and p2 ends
         if     S(b1, 1) ~= c
             p1 = 1;
@@ -262,8 +247,6 @@ for t = 1:T
         %-----FLIP-----% END
     end
     %-----ACTION-----% END
-    
-    
     %-----TRUNCATE-----% BEGIN
     if L == 0
         T = t;
@@ -271,16 +254,13 @@ for t = 1:T
     end
     %-----TRUNCATE-----% END
 end
-
 %-----SIMULATION-----% END
 
 
-
-%% %-----RECONSTRUCTION-----%
-
+%-----RECONSTRUCTION-----%
 % Assign each cell a number that indicates their barcode ID
 % Identify cells by most prominant barcode
-conid = connclone_isOBOC( M );
+conid = cc_isOBOC( M );
 % check for repeating barcode-id's
 if conid == false
     O = 0;    % Fail if not OBOC
@@ -293,5 +273,6 @@ else
     end
 end
 %-----RECONSTRUCTION-----% END
+
 
 end

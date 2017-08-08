@@ -2,20 +2,20 @@
 
 This document countains  details regarding the connectome cloning project.
 
-___
+
 # Tasks
 
 Here are some finalizing tasks.
 
 * Flickering synapses (15% of all available synapses are present)
 
-___
+
 # Discussion
 
 For flickering synapses, since both swapping and flipping is direction agnostic,
 the flicker map must be symmetric.
 
-___
+
 # Workflow
 
 The function **connclone** is the latest version of the algorithm.
@@ -23,10 +23,19 @@ That function can be checked to see the latest format to enter data.
 All scripts in this directory are wrappers to record and save data.
 Graph generating scripts are put in *visuals/generators*.
 
-___
-# Variables
 
-Free letters remaining: GP
+# Functions
+
+Besides the main function, there are multiple modules.
+
+* **Flicker**: Simulation with flickering synapses,
+meaning the connection is not TR, but some random connectivity,
+with changes to this connectivity happening at bulk in preset intervals.
+* **Parallel**: In this simulation, all barcodes try to move simultaneously.
+
+## Variables
+
+Free letters remaining: G
 
 These are variables used to keep track of things.
 Originally on **connclone**, these might differ between versions.
@@ -34,10 +43,10 @@ Will add version spoecific ones here as well.
 
 ## Inputs
 * N **100**: Input connectome size
-* D **0.1**: Connectome density
+* D **.1** : Connectome density
 * E **10** : Cost parameter
 * H **0,0**: Temperature scaling.
-* *U* **0.3**: Active synapse percentage *(flickering only)*.
+* *fd* **.3**: Active synapse percentage *(flickering only)*.
 
 ## Outputs
 * O: 0 if reconstruction was unsuccessful, convergence time if successful.
@@ -45,14 +54,17 @@ Will add version spoecific ones here as well.
 
 ## Runtime
 * W: Used for batch generating random numbers.
+* G: Sets the maximum number of times the simulation is allowed to run (in average runtime)
 * C: The original connectome
 * V: Reconstructed connectome
 * T: Max simulation runtime
 * R: Move probabilities
+* L: Energy (above GS)
 
 *Flicker*: for changing activation of synapses
 
 * P: Number of times the synapse activation should change.
+* flicker_step: Step size for flickering synapses.
 
 ## State
 * K: List of barcodes on bp ends (pre,pos) 
@@ -66,7 +78,7 @@ For hamiltonian;
 
 For cell selection
 
-* A: List of bp ids in each cell (cell,...)
+* A: List of bp ids in each cell (cell, ...)
 * J: Total # of barcode pairs per cell (cell)
 * Q: Location of bp in A (cell,bp-id)
 
@@ -78,5 +90,5 @@ For swap candidate selection
 
 *Flicker*: for jump move selection
 
-* I: List of synapses to cells.
+* I: List of synapses to cells. (cell, ...)
 * U: Total number of synapses per cell
