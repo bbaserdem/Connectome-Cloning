@@ -1,4 +1,14 @@
 % Script to generate results up to a thousand neurons
+clear variables
+file_prefix = 'run';
+save_var = {...
+    'N', ...
+    'D', ...
+    'repeat', ...
+    'Nval', ...
+    'Dval', ...
+    'Cval', ...
+    'Bval' };
 
 N = ceil( logspace(1,3,7) )';
 D = logspace(log10(0.05), log10(0.8), 6)';
@@ -34,6 +44,14 @@ for a = 1:length(N)
     end
 end
 
-clear a b c n d sto1 sto2 e
-
-save results/run3.mat
+file = [ 'results/', file_prefix, ...
+    sprintf( '%02d', 1 + length(dir(['results/',file_prefix,'*'])) ), ...
+    '.mat' ];
+for a = 1:length(save_var)
+    if a == 1
+        save( file, save_var{a} );
+    else
+        save( file, save_var{a}, '-append' );
+    end
+end
+system( [ 'git add ', file ] );

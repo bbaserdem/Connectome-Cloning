@@ -1,18 +1,25 @@
 clear variables
-file_prefix = 'par';
+file_prefix = 'fli';
 save_var = {...
+    'N', ...
+    'D', ...
     'R', ...
+    'failure', ...
     'N_values', ...
     'D_values', ...
-    'C_values' };
+    'C_values', ...
+    'T_values' };
 
-N = ceil( logspace( 1.25, 2, 15) );
-D = logspace( log10(0.03), log10(0.3), 4);
+N = ceil( logspace( log10(50), 3, 15) );
+D = logspace( log10(0.03), log10(0.2), 8);
 R = 20;
 
 N_values = [];
 D_values = [];
 C_values = [];
+T_values = [];
+
+failure = zeros( length(N), length(D) );
 
 for nN = 1:length(N)
     n = N(nN);
@@ -20,15 +27,18 @@ for nN = 1:length(N)
         tic;
         d = D(dN);
         fprintf('Case: N=%d, D=%.2d\n', n, d);
-        S = zeros(R,1);
-        F = zeros(R,1);
+        A = zeros(R,1);
+        B = zeros(R,1);
+        C = zeros(R,1);
         parfor r = 1:R
-            [S(r), F(r)] = cc_parallel(n,d);
+            [A(r), B(r), C(r)] = cc_flicker(n,d);
         end
-        ind = S~=0;
+        ind = A~=0;
+        failure(nN,dN) = sum( ~ind ) / R;
         N_values = [N_values; n*ones(sum(ind),1) ];
-        D_values = [D_values; F(ind) ];
-        C_values = [C_values; S(ind) ];
+        D_values = [D_values; B(ind) ];
+        C_values = [C_values; A(ind) ];
+        T_values = [T_values; C(ind) ];
         toc;
     end
 end

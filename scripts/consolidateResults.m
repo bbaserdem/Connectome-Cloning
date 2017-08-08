@@ -2,7 +2,7 @@
 % Consolidates Nval, Fval and Cval.
 
 clear variables
-load results/run_all.mat
+load results/cc_all.mat
 load results/run3.mat Nval Fval Cval
 
 % Add results to database
@@ -22,4 +22,4 @@ regRes(1) = exp(regRes(1));
 regResConf(1,:) = exp(regResConf(1,:));
 
 % Save new results
-save results/run_all.mat
+save results/cc_all.mat

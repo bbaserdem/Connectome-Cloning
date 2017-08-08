@@ -1,6 +1,14 @@
 % Script to generate results up to a thousand neurons with scale-free
 % networks
 clear variables
+file_prefix = 'sfn';
+save_var = {...
+    'N_values', ...
+    'D_values', ...
+    'C_values', ...
+    'regRes', ...
+    'regResConf', ...
+    'regResStats' };
 
 N = ceil( logspace(log10(20),3,7) )';
 K = 1:10;
@@ -9,7 +17,6 @@ repeat = 24;
 N_values = [];
 D_values = [];
 C_values = [];
-
 
 for nN = 1:length(N)
     n = N(nN);
@@ -35,4 +42,14 @@ end
 regRes(1) = exp(regRes(1));
 regResConf(1,:) = exp(regResConf(1,:));
 
-save results/sfn2.mat N_values D_values C_values regRes regResConf regResStats
+file = [ 'results/', file_prefix, ...
+    sprintf( '%02d', 1 + length(dir(['results/',file_prefix,'*'])) ), ...
+    '.mat' ];
+for a = 1:length(save_var)
+    if a == 1
+        save( file, save_var{a} );
+    else
+        save( file, save_var{a}, '-append' );
+    end
+end
+system( [ 'git add ', file ] );

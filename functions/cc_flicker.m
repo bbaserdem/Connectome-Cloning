@@ -1,4 +1,4 @@
-function [ O, B ] = cc_flicker( N, D, fd, E, H )
+function [ O, B, rnt ] = cc_flicker( N, D, fd, E, H )
 %CC_FLICKER: Simulation with flickering synapses
 
 
@@ -30,9 +30,10 @@ C = cc_genConnectome(N, D);      % Generate connectome
 B = sum( C(:) );
 D = B / (N^2);
 % Max number of time steps
-T = G * cc_averageRuntime(N,D);
+T = cc_averageRuntime(N,D);
 % Flicker step size
-flicker_step = round( ( T / G ) / P ); 
+flicker_step = round( T / P ); 
+rnt=0;
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
 % Function to evaluate transition probability
@@ -84,7 +85,7 @@ L = ...
 
 
 %-----SIMULATION-----%
-for t = 1:T
+for t = 1:(G*T)
     k = mod( t-1, W ) + 1;
     if k == 1
         r = rand(5,W);
@@ -249,7 +250,6 @@ for t = 1:T
     %-----ACTION-----% END
     %-----TRUNCATE-----% BEGIN
     if L == 0
-        T = t;
         break
     end
     %-----TRUNCATE-----% END
@@ -267,7 +267,8 @@ if conid == false
 else
     V = sparse( conid(S(:,1)), conid(S(:,2)), 1, N, N);
     if all( C(:)==V(:) )
-        O = T;
+        O = t;
+        rnt = O / T;
     else
         O = 0;
     end

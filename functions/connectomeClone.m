@@ -26,7 +26,7 @@ C = cc_genConnectome(N, D);      % Generate connectome
 B = sum( C(:) );
 D = B / (N^2);
 % Time steps
-T = G * cc_averageRuntime(N,D);
+T = cc_averageRuntime(N,D);
 % Move probabilities ( jump (1-D), swap(D-1/N), flip(1/N) ) (cumsum)
 R = [ 1-D, max(1-D,1-1/N) ];
 % Function to evaluate transition probability
@@ -78,7 +78,7 @@ L = ...
 
 
 %-----SIMULATION-----%
-for t = 1:T
+for t = 1:(G*T)
     k = mod( t-1, W ) + 1;
     if k == 1
         r = rand(5,W);
@@ -239,7 +239,6 @@ for t = 1:T
     %-----ACTION-----% END
     %-----TRUNCATE-----% BEGIN
     if L == 0
-        T = t;
         break
     end
     %-----TRUNCATE-----% END
@@ -257,7 +256,7 @@ if conid == false
 else
     V = sparse( conid(S(:,1)), conid(S(:,2)), 1, N, N);
     if all( C(:)==V(:) )
-        O = T;
+        O = t;
     else
         O = 0;
     end
