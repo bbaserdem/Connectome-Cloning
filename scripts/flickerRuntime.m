@@ -6,6 +6,7 @@ save_var = {...
     'R', ...
     'failure', ...
     'N_values', ...
+    'B_values', ...
     'D_values', ...
     'C_values', ...
     'T_values' };
@@ -15,7 +16,7 @@ D = logspace( log10(0.03), log10(0.2), 8);
 R = 20;
 
 N_values = [];
-D_values = [];
+B_values = [];
 C_values = [];
 T_values = [];
 
@@ -36,12 +37,14 @@ for nN = 1:length(N)
         ind = A~=0;
         failure(nN,dN) = sum( ~ind ) / R;
         N_values = [N_values; n*ones(sum(ind),1) ];
-        D_values = [D_values; B(ind) ];
+        B_values = [B_values; B(ind) ];
         C_values = [C_values; A(ind) ];
         T_values = [T_values; C(ind) ];
         toc;
+        fprintf( [ 'Time; ', datestr(now), '\n'] );
     end
 end
+D_values = B_values ./ ( N_values .^ 2 );
 
 file = [ 'results/', file_prefix, ...
     sprintf( '%02d', 1 + length(dir(['results/',file_prefix,'*'])) ), ...

@@ -1,4 +1,4 @@
-function [ success, H ] = sim_cc( C )
+function [ success, H ] = sim_cc( C,params )
 %SIM_JO_G2 Simulation with quadratic hamiltonian (G=2)
 % Inputs
 %   C: input connectome

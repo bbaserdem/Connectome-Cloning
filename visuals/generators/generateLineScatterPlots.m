@@ -1,9 +1,9 @@
 % Loads data and creates a 2D scatter plot with logarithmic axes
 clear variables
-load results/all.mat
+load results/cc_all.mat
 
 % Turn on to generate also a figure with exponential fit
-exponentialFit = true;
+exponentialFit = false;
 bkg = [ .9 .9 .9 ];
 
 X = (D_values.^regRes(2)) .* (N_values.^regRes(3));
